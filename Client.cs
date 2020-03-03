@@ -9,6 +9,9 @@ using System;
 public class Client : MonoBehaviour
 {
     public string clientName;
+    public string otherclientName;
+    
+
     public bool isHost;
 
     private bool socketReady;
@@ -16,6 +19,7 @@ public class Client : MonoBehaviour
     private NetworkStream stream;
     private StreamWriter writer;
     private StreamReader reader;
+
  //game variables
     public bool Aa= false;
     public bool Ad= false;
@@ -25,6 +29,9 @@ public class Client : MonoBehaviour
     public bool Bk= false; // b input done
     public int As;  // score of a
     public int Bs;
+    public int initialscore;
+    public int attackpow;
+    public string won;
     
 //
    
@@ -107,6 +114,20 @@ public class Client : MonoBehaviour
                 UserConnected(aData[1],false);
                 break;
 
+            case "gamestarted":
+                initialscore = int.Parse(aData[3]);  
+                attackpow = int.Parse(aData[4]);
+                if(isHost)
+                {                   
+                    otherclientName = aData[2];
+                    GameStarter.Instance.StartGame();                      
+                }else 
+                {
+                     otherclientName = aData[1];
+                     GameStarter.Instance.StartGame();                     
+                }                          
+                break;
+
             case "Adone":
                 gamemanager.Instance.otherplayerdone("Adone");                
                 break;
@@ -122,15 +143,25 @@ public class Client : MonoBehaviour
                 Ba=bool.Parse(aData[4]);  
                 Bd=bool.Parse(aData[5]);  
                 Bs=int.Parse(aData[6]);
-                gamemanager.Instance.Roundover(Aa,Ad,As,Ba,Bd,Bs); 
+                won = aData[7];
+
+                gamemanager.Instance.Roundover(Aa,Ad,As,Ba,Bd,Bs,won); 
+                Chatmanager.Instance.clearallmessages(); 
                   
                 Aa= false;
                 Ad= false;
                 Ba= false;
                 Bd= false;
                 Ak= false; // a input done
-                Bk= false; // b input done
-                     
+                Bk= false; // b input done                     
+                break;            
+
+            case "MsgA":
+                Chatmanager.Instance.ShowmessageofA(aData[1]);              
+                break;
+
+            case "MsgB":
+                Chatmanager.Instance.ShowmessageofB(aData[1]);              
                 break;
 
         }
@@ -143,11 +174,14 @@ public class Client : MonoBehaviour
 
         players.Add(c);
 
-        if(players.Count == 2)
-            GameStarter.Instance.StartGame();
+        if(players.Count == 2){
+            
+            if(isHost)
+            {Send("gamestarted|");}
+        }
     }
 
-    private void OnApplicaitonQuit()
+    public void OnApplicaitonQuit()
     {
         CloseSocket();
     }
