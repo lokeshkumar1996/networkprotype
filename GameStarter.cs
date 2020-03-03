@@ -10,6 +10,7 @@ public class GameStarter : MonoBehaviour
     public static GameStarter Instance { set; get;}
     public GameObject mainMenu;
     public GameObject servermenu; 
+    public GameObject hostmenu; 
     public GameObject connectmenu;
 
     public GameObject serverPrefab;
@@ -26,6 +27,7 @@ public class GameStarter : MonoBehaviour
         connectmenu.SetActive(false);
         servermenu.SetActive(false);
         mainMenu.SetActive(true);
+        hostmenu.SetActive(false);
 
         
         DontDestroyOnLoad(gameObject);
@@ -43,6 +45,16 @@ public class GameStarter : MonoBehaviour
            
             Server s =Instantiate(serverPrefab).GetComponent<Server>();
             s.Init();
+            string initialscore = GameObject.Find("initialscore").GetComponent<InputField>().text; 
+            if(initialscore == "")
+            initialscore = "20";
+            s.initialscore = int.Parse(initialscore);
+            string attackpow = GameObject.Find("attackintensity").GetComponent<InputField>().text; 
+            if(attackpow == "")
+            attackpow = "3";
+            s.attackpow = int.Parse(attackpow);            
+
+
             Client c =Instantiate(clientPrefab).GetComponent<Client>();
             c.clientName = nameinput.text;
             c.isHost = true;
@@ -107,7 +119,7 @@ public class GameStarter : MonoBehaviour
 
     public void StartGame()
     {
-        SceneManager.LoadScene("game");
+        SceneManager.LoadScene("game1");
     }
 }
 

@@ -27,12 +27,15 @@ public class Server : MonoBehaviour
    public bool Ak= false; // a input done
    public bool Bk= false; // b input done
    public int As;  // score of a
-   public int Bs;
-   int attackpow = 2;
+   public int Bs; //score of b
+   public int initialscore;
+
+   public int attackpow = 3;
    public bool alldone;
    bool Alost =false;
    bool Blost =false;
-   float timer =0f;
+   public string won;
+   //float timer =0f;
   
 //
 
@@ -69,7 +72,7 @@ public class Server : MonoBehaviour
        if(!serverStarted)
        return;
 
-       timer += Time.deltaTime;
+     //  timer += Time.deltaTime;
 
        
        
@@ -105,11 +108,11 @@ public class Server : MonoBehaviour
            disconnectList.RemoveAt(i);
        }
 
-       if(timer > 6f)
+      /* if(timer > 6f)
        {
            alldone = true;
            timer = 0f;
-       }
+       }*/
 
        if(alldone)
        gamelogics();
@@ -224,6 +227,17 @@ public class Server : MonoBehaviour
                 Broadcast("SCNN|" + c.clientName, clients);
                 break;
 
+            case "gamestarted":
+                string msg = "gamestarted|";
+                foreach(ServerClient cs in clients)
+                {
+                    msg += cs.clientName.ToString() + "|" ;      
+                }
+                msg +=initialscore.ToString() + "|" ;
+                msg +=attackpow.ToString() ;
+                Broadcast(msg, clients);
+                break;
+
             case "Adone":   
                    
                 Aa=bool.Parse(aData[1]);  
@@ -246,6 +260,14 @@ public class Server : MonoBehaviour
                 alldone = true;
                 break; 
 
+            case "MsgA":
+                Broadcast("MsgA|"+aData[1],clients);      
+                break;
+
+            case "MsgB":
+                Broadcast("MsgB|"+aData[1],clients);     
+                break;  
+
         }
     }
 
@@ -256,12 +278,13 @@ public class Server : MonoBehaviour
         
        
          //selection ponits reduction
-        /* if(Aa) As -= 1;
+         
+         if(Aa) As -= 1;
          if(Ad) As -= 1;
          if(Ba) Bs -= 1;
          if(Bd) Bs -= 1;
 
-         checkvictory();*/
+         //checkvictory();
          
 
 
@@ -288,15 +311,16 @@ public class Server : MonoBehaviour
         //
         
         
-        if(Alost == false && Blost == false)
-        {
+        
         string msg = "Roundover|";
          msg += Aa.ToString() + "|" ;
          msg += Ad.ToString() + "|" ;
          msg += As.ToString() + "|" ;
          msg += Ba.ToString() + "|" ;
          msg += Bd.ToString() + "|" ;
-         msg += Bs.ToString() ;  
+         msg += Bs.ToString() + "|" ;
+         if(Blost){msg += "A";}
+         if(Alost){msg += "B";}           
 
         
         foreach(ServerClient c in clients)
@@ -313,23 +337,8 @@ public class Server : MonoBehaviour
          Ak= false; // a input done
          Bk= false; // b input done
          alldone = false;
-        }
-        else if(Blost)
-        {
-            Debug.Log("Server:A wins");
-            foreach(ServerClient c in clients)
-            {            
-            Broadcast("Awins|", c);
-            }
-        }
-        else if(Alost)
-        {
-            Debug.Log("Server:B Wins");
-           foreach(ServerClient c in clients)
-            {            
-            Broadcast("Bwins|", c);
-            }
-        }
+        
+        
        
     }
     

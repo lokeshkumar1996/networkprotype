@@ -17,9 +17,28 @@ public class gamemanager : MonoBehaviour
     public Toggle toggleofBk;   
     public Text scoreofA;
     public Text scoreofB;
-    public Text timertext; 
+    //public Text timertext; 
     public Text Roundcounter;
     private Animator anim;
+    public Animator BulletAattacked;
+    public Animator BulletAdefended;
+    public Animator BulletBattacked;
+    public Animator BulletBdefended;
+    public Text clientAname;
+    public Text clientBname;
+    public Text clientAnamemsg;
+    public Text clientBnamemsg;
+    public Text Winningmessage;
+
+    
+    public GameObject inputmessageofA;    
+    public GameObject inputmessageofB;
+    public GameObject Winnpannel;
+
+
+    
+    
+
 
     public string clientwho ;
     
@@ -34,49 +53,65 @@ public class gamemanager : MonoBehaviour
     public int round;
     public bool inputdone;
     private Client client;
-    float timer;
-    float timelimit = 5f;
-    bool timerend = true;
+    public string winner;
+    
+   // float timer;
+   // float timelimit = 5f;
+   // bool timerend = true;
 
 
  public void Start()
    {  
-      Instance = this;      
+      Instance = this;   
       client = FindObjectOfType<Client>(); 
+
+      BulletAdefended = GameObject.Find("bulletofAdefended").GetComponent<Animator>(); 
+      BulletAattacked = GameObject.Find("bulletofAattacked").GetComponent<Animator>(); 
+      BulletBdefended = GameObject.Find("bulletofBdefended").GetComponent<Animator>(); 
+      BulletBattacked = GameObject.Find("bulletofBattacked").GetComponent<Animator>(); 
       anim = GameObject.Find("roudnfadeanim").GetComponent<Animator>(); 
 
       round =1;
-      As= 2;
-      Bs= 2;      
+      As= client.initialscore;
+      Bs= client.initialscore;  
 
       Roundcounter.text = round.ToString();  
       scoreofA.text = As.ToString();
       scoreofB.text = Bs.ToString();
 
-        
-
      if(client.isHost)
       {
           clientwho = "A";
+          clientAname.text = client.clientName;
+          clientBname.text = client.otherclientName;
+          clientAnamemsg.text = client.clientName;
+          clientBnamemsg.text = client.otherclientName;
+          inputmessageofA.SetActive(true);
+          inputmessageofB.SetActive(false);
+
       }
       else
       {
           clientwho = "B";
+          clientAname.text = client.otherclientName;
+          clientBname.text = client.clientName;
+          clientAnamemsg.text = client.otherclientName;
+          clientBnamemsg.text = client.clientName;
+          inputmessageofA.SetActive(false);
+          inputmessageofB.SetActive(true);
       } 
-     
 
       Restictotherclients(clientwho);   
       inputdone =false;
-      
    } 
 
    private void Update()
    {
       scoreofA.text = As.ToString();
       scoreofB.text = Bs.ToString();
-      timertext.text = timer.ToString();
+      //timertext.text = timer.ToString();
 
-        if(timerend){
+     /*   if(timerend){
        timer += Time.deltaTime;
         }
 
@@ -109,7 +144,7 @@ public class gamemanager : MonoBehaviour
          timerend = false;
          
         }
-      }
+      } */
 
     //after input send
     if(inputdone == false )
@@ -123,7 +158,7 @@ public class gamemanager : MonoBehaviour
        
          client.Send(msg); 
          inputdone = true;
-         timerend = false;
+       //  timerend = false;
       }
 
       if(clientwho == "B" && Bk)
@@ -135,7 +170,7 @@ public class gamemanager : MonoBehaviour
         
          client.Send(msg);
          inputdone = true;
-         timerend = false;
+        // timerend = false;
       }
 
     }
@@ -214,8 +249,8 @@ public class gamemanager : MonoBehaviour
         }
     }
   
-    public void Roundover(bool AAa, bool AAd, int AAs, bool BBa, bool BBd, int BBs)
-    {
+    public void Roundover(bool AAa, bool AAd, int AAs, bool BBa, bool BBd, int BBs,string won)
+    {      
         toggleofBa.GetComponent<Toggle>().interactable = true; 
         toggleofBd.GetComponent<Toggle>().interactable = true;  
         toggleofAa.GetComponent<Toggle>().interactable = true; 
@@ -234,35 +269,113 @@ public class gamemanager : MonoBehaviour
         toggleofAa.GetComponent<Toggle>().interactable = false; 
         toggleofAd.GetComponent<Toggle>().interactable = false;
 
+          if(AAa)
+          {                        
+             
+            if(AAa && BBd)
+            {             
+            BulletAdefended.SetBool("bulletA",true);    
+            }
+            if(AAa && BBd == false)
+            {            
+            BulletAattacked.SetBool("bulletA",true);          
+            }
+          }    
+
+          if(BBa)
+          {                        
+             
+            if(BBa && AAd)
+            {             
+            BulletBdefended.SetBool("bulletB",true);    
+            }
+            if(BBa && AAd == false)
+            {            
+            BulletBattacked.SetBool("bulletB",true);          
+            }
+          }       
 
         scoreofA.text = AAs.ToString();
         scoreofB.text = BBs.ToString();
 
-        Debug.Log("roundover for all");
-
-        Invoke("nextround", 2f);        
+        if(won =="A" || won =="B")
+        {
+          winner = won;
+          Invoke("winning", 2.2f);  
+        }
+        else
+        {
+          Invoke("nextround", 2.2f);
+        }
         
+       //Debug.Log("roundover for all");
     }
+    
+
+    public void winning()
+    {
+      Winnpannel.SetActive(true);
+      if(winner == "A")
+      {
+        string msg = clientAname.text;
+         msg += " Won" ; 
+         Winningmessage.text = msg;        
+      }
+      if(winner == "B")
+      {
+        string msg = clientBname.text;
+         msg += " Won" ;
+         Winningmessage.text = msg;
+      } 
+    }
+
 
     private void nextround()
     {
+        //Destroy(BulletA);
         round = round+ 1;
-        Roundcounter.text = round.ToString();  
+        Roundcounter.text = round.ToString(); 
+        BulletAdefended.SetBool("bulletA",false);  
+        BulletAattacked.SetBool("bulletA",false); 
+        BulletBdefended.SetBool("bulletB",false);  
+        BulletBattacked.SetBool("bulletB",false);     
 
         anim.SetBool("playfade",true);
-        Invoke("stopanim",.7f);
+        Invoke("stopanim",1.5f);
 
-        Restictotherclients(clientwho);
-        timer= 0f;
-        timerend =true;
-        inputdone = false;
+        
     }
 
     private void stopanim()
     {
         anim.SetBool("playfade",false);
+        Restictotherclients(clientwho);
+       // timer= 0f;
+      //  timerend =true;
+        inputdone = false;
     }
 
+    
+
+    public void mainmenubutton()
+    {
+      client.OnApplicaitonQuit();
+
+      if(GameObject.Find("GameStarter") != null)
+      {
+        Destroy(GameObject.Find("GameStarter"));
+      }
+      if(GameObject.Find("Client") != null)
+      {
+        Destroy(GameObject.Find("Client"));
+      }
+      if(GameObject.Find("Server") != null)
+      {
+        Destroy(GameObject.Find("Server"));
+      }
+      
+      SceneManager.LoadScene("menuserver");
+    }
     
 
 // toggle enabling
@@ -273,6 +386,7 @@ public class gamemanager : MonoBehaviour
         {        
         Aa = toggleofAa.GetComponent<Toggle>().isOn; 
         if(Aa) { As -= 1;}
+        if(!Aa) { As += 1;}
         }             
     }
 
@@ -282,6 +396,7 @@ public class gamemanager : MonoBehaviour
         {        
         Ad = toggleofAd.GetComponent<Toggle>().isOn; 
         if(Ad) { As -= 1;}
+        if(!Ad) { As += 1;}
         }
     }
 
@@ -291,6 +406,7 @@ public class gamemanager : MonoBehaviour
         {        
         Ba =  toggleofBa.GetComponent<Toggle>().isOn;
         if(Ba) { Bs -= 1;}
+        if(!Ba) { Bs += 1;}
         } 
     }
 
@@ -300,6 +416,7 @@ public class gamemanager : MonoBehaviour
         {        
         Bd =  toggleofBd.GetComponent<Toggle>().isOn;
         if(Bd) { Bs -= 1;}
+        if(!Bd) { Bs += 1;}
         }
     }
 
